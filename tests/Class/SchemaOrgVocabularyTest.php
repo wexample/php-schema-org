@@ -40,8 +40,16 @@ class SchemaOrgVocabularyTest extends TestCase
     public function testWhatIsNoValueOfTheRangeIsLeftAsItIs(): void
     {
         $object = new \stdClass();
+        $media = new class implements \Stringable {
+            public function __toString(): string
+            {
+                return 'cover.png';
+            }
+        };
 
         $this->assertSame($object, $this->vocabulary->write('author', $object));
+        // URL or ImageObject: an object is left to be described.
+        $this->assertSame($media, $this->vocabulary->write('image', $media));
         $this->assertSame('Jane', $this->vocabulary->write('name', 'Jane'));
         $this->assertSame(2022, $this->vocabulary->write('notAProperty', 2022));
     }

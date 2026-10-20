@@ -39,7 +39,9 @@ enum SchemaOrgDataType: string
             self::NUMBER => is_int($value) || is_float($value) ? $value : null,
             self::BOOLEAN => is_bool($value) ? $value : null,
             self::QUANTITY => $value instanceof \DateInterval ? self::writeDuration($value) : null,
-            self::TEXT => is_int($value) || is_float($value) || $value instanceof \Stringable ? (string) $value : null,
+            // An object is described, never cast: a Stringable media in an
+            // `image` (URL or ImageObject) is an ImageObject, not its name.
+            self::TEXT => is_int($value) || is_float($value) ? (string) $value : null,
         };
     }
 
