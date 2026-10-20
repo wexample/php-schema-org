@@ -1,10 +1,13 @@
 # php-schema-org
 
-Version: 1.0.0
+Version: 1.0.1
+
+The schema.org vocabulary of a release, to check a description against and write its values as schema.org reads them
 
 ## Table of Contents
 
 - [Integration in the Suite](#integration-in-the-suite)
+- [Dependencies](#dependencies)
 - [Versioning & Compatibility Policy](#versioning--compatibility-policy)
 - [License](#license)
 - [About us](#about-us)
@@ -17,6 +20,10 @@ This package is part of the Wexample Suite — a collection of high-quality, mod
 ### Related Packages
 
 The suite includes packages for configuration management, file handling, prompts, and more. Each package can be used independently or as part of the integrated suite.
+
+## Dependencies
+
+- php: >=8.5
 
 ## Versioning & Compatibility Policy
 

@@ -1,0 +1,65 @@
+#!/usr/bin/env php
+<?php
+
+/*
+ * Rebuilds resources/vocabulary.php from a schema.org release:
+ *
+ *     bin/schema-org-vocabulary 30.1
+ *
+ * The releases are listed at https://schema.org/docs/releases.html.
+ */
+
+use Wexample\PhpSchemaOrg\Helper\SchemaOrgVocabularyHelper;
+
+require dirname(__DIR__).'/vendor/autoload.php';
+
+if (! preg_match('/^\d+\.\d+$/', $version = $argv[1] ?? '')) {
+    fwrite(STDERR, "Usage: bin/schema-org-vocabulary <release, as 30.1>\n");
+    exit(1);
+}
+
+$url = sprintf('https://schema.org/version/%s/schemaorg-current-https.jsonld', $version);
+
+if (false === $json = @file_get_contents($url)) {
+    fwrite(STDERR, "Could not download $url\n");
+    exit(1);
+}
+
+$vocabulary = SchemaOrgVocabularyHelper::fromJsonLd(json_decode($json, true, flags: JSON_THROW_ON_ERROR), $version);
+
+// One term a line: a new release differs from the last by the terms it changed.
+$export = static function (array $value) use (&$export): string {
+    $items = [];
+
+    foreach ($value as $key => $item) {
+        $items[] = (array_is_list($value) ? '' : var_export($key, true).' => ')
+            .(is_array($item) ? $export($item) : var_export($item, true));
+    }
+
+    return '['.implode(', ', $items).']';
+};
+
+$lines = ["<?php\n", "// Built by bin/schema-org-vocabulary from $url: not to be edited.", 'return ['];
+$lines[] = '    \'version\' => '.var_export($version, true).',';
+
+foreach (['types', 'properties', 'members'] as $section) {
+    $lines[] = "    '$section' => [";
+
+    foreach ($vocabulary[$section] as $name => $term) {
+        $lines[] = '        '.var_export($name, true).' => '.$export($term).',';
+    }
+
+    $lines[] = '    ],';
+}
+
+$lines[] = "];\n";
+
+file_put_contents(dirname(__DIR__).'/resources/vocabulary.php', implode("\n", $lines));
+
+printf(
+    "schema.org %s: %d types, %d properties, %d enumeration members.\n",
+    $version,
+    count($vocabulary['types']),
+    count($vocabulary['properties']),
+    count($vocabulary['members'])
+);
