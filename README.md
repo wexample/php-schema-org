@@ -1,6 +1,6 @@
 # php-schema-org
 
-Version: 1.0.1
+Version: 1.1.0
 
 The schema.org vocabulary of a release, to check a description against and write its values as schema.org reads them
 

@@ -40,7 +40,7 @@ class SchemaOrgVocabularyTest extends TestCase
     public function testWhatIsNoValueOfTheRangeIsLeftAsItIs(): void
     {
         $object = new \stdClass();
-        $media = new class implements \Stringable {
+        $media = new class () implements \Stringable {
             public function __toString(): string
             {
                 return 'cover.png';

@@ -1,7 +1,7 @@
 {
   "name": "wexample/php-schema-org",
   "description": "The schema.org vocabulary of a release, to check a description against and write its values as schema.org reads them",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "type": "library",
   "license": "MIT",
   "authors": [
