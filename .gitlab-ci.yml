@@ -1,0 +1,2 @@
+include:
+  - remote: 'https://gitlab.wexample.com/wexample-public/ci-cd/-/raw/main/.gitlab-ci.type.composer.package.yml'
