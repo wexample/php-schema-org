@@ -30,6 +30,17 @@ final class SchemaOrgVocabulary
     private readonly array $vocabulary;
 
     /**
+     * The ancestors of each type already walked: every property checked and
+     * every value written walks them again. They depend on the vocabulary
+     * alone, which never changes, so a vocabulary kept from one request to
+     * the next keeps them right. Only the vocabulary's own types are kept, so
+     * the names a description makes up cannot grow it.
+     *
+     * @var array<string, list<string>>
+     */
+    private array $ancestors = [];
+
+    /**
      * @param array|null $vocabulary another than the bundled one, built by
      *                               SchemaOrgVocabularyHelper::fromJsonLd()
      */
@@ -61,6 +72,10 @@ final class SchemaOrgVocabulary
      */
     public function getAncestors(string $type): array
     {
+        if (isset($this->ancestors[$type])) {
+            return $this->ancestors[$type];
+        }
+
         $ancestors = [];
         $pending = [$type];
 
@@ -69,6 +84,10 @@ final class SchemaOrgVocabulary
                 $ancestors[] = $current;
                 array_push($pending, ...$this->vocabulary['types'][$current] ?? []);
             }
+        }
+
+        if ($this->isType($type)) {
+            $this->ancestors[$type] = $ancestors;
         }
 
         return $ancestors;

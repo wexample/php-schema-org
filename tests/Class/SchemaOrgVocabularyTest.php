@@ -54,6 +54,20 @@ class SchemaOrgVocabularyTest extends TestCase
         $this->assertSame(2022, $this->vocabulary->write('notAProperty', 2022));
     }
 
+    public function testAncestorsAskedAgainAreTheSame(): void
+    {
+        $first = $this->vocabulary->getAncestors('LocalBusiness');
+
+        $this->assertSame('LocalBusiness', $first[0]);
+        $this->assertContains('Organization', $first);
+        $this->assertContains('Place', $first);
+        $this->assertContains('Thing', $first);
+        $this->assertSame($first, $this->vocabulary->getAncestors('LocalBusiness'));
+        // A name outside the vocabulary is itself and nothing more, each time.
+        $this->assertSame(['NoSuchType'], $this->vocabulary->getAncestors('NoSuchType'));
+        $this->assertSame(['NoSuchType'], $this->vocabulary->getAncestors('NoSuchType'));
+    }
+
     public function testAPropertyIsInheritedFromEveryParent(): void
     {
         // An Organization and a Place.
