@@ -30,15 +30,14 @@ final class SchemaOrgVocabulary
     private readonly array $vocabulary;
 
     /**
-     * The ancestors of each type already walked: every property checked and
-     * every value written walks them again. They depend on the vocabulary
-     * alone, which never changes, so a vocabulary kept from one request to
-     * the next keeps them right. Only the vocabulary's own types are kept, so
-     * the names a description makes up cannot grow it.
+     * The ancestors of each of the vocabulary's types, walked once when it is
+     * built: every property checked and every value written needs them. Set
+     * then and never again — a vocabulary kept from one request to the next,
+     * in a worker, carries nothing a request put there.
      *
      * @var array<string, list<string>>
      */
-    private array $ancestors = [];
+    private readonly array $ancestors;
 
     /**
      * @param array|null $vocabulary another than the bundled one, built by
@@ -47,6 +46,14 @@ final class SchemaOrgVocabulary
     public function __construct(?array $vocabulary = null)
     {
         $this->vocabulary = $vocabulary ?? require dirname(__DIR__, 2).'/resources/vocabulary.php';
+
+        $ancestors = [];
+
+        foreach (array_keys($this->vocabulary['types']) as $type) {
+            $ancestors[$type] = $this->walkAncestors($type);
+        }
+
+        $this->ancestors = $ancestors;
     }
 
     /** The schema.org release the vocabulary is, `30.1`. */
@@ -72,25 +79,8 @@ final class SchemaOrgVocabulary
      */
     public function getAncestors(string $type): array
     {
-        if (isset($this->ancestors[$type])) {
-            return $this->ancestors[$type];
-        }
-
-        $ancestors = [];
-        $pending = [$type];
-
-        while (null !== $current = array_shift($pending)) {
-            if (! in_array($current, $ancestors, true)) {
-                $ancestors[] = $current;
-                array_push($pending, ...$this->vocabulary['types'][$current] ?? []);
-            }
-        }
-
-        if ($this->isType($type)) {
-            $this->ancestors[$type] = $ancestors;
-        }
-
-        return $ancestors;
+        // A name the vocabulary does not have is its own only ancestor.
+        return $this->ancestors[$type] ?? [$type];
     }
 
     /** Whether the type, or one it descends from, has the property. */
@@ -244,5 +234,23 @@ final class SchemaOrgVocabulary
     private static function prefix(string $path): string
     {
         return '' === $path ? '' : $path.': ';
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function walkAncestors(string $type): array
+    {
+        $ancestors = [];
+        $pending = [$type];
+
+        while (null !== $current = array_shift($pending)) {
+            if (! in_array($current, $ancestors, true)) {
+                $ancestors[] = $current;
+                array_push($pending, ...$this->vocabulary['types'][$current] ?? []);
+            }
+        }
+
+        return $ancestors;
     }
 }
